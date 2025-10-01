@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assessment Results & Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .user-results {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .user-results h2 {
+            color: white;
+            border-bottom-color: white;
+        }
+        
+        .result-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .result-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .result-item .label {
+            display: block;
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .result-item .value {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .value.score { color: #3498db; }
+        .value.band.low-risk { color: #27ae60; }
+        .value.band.at-risk { color: #f39c12; }
+        .value.band.problematic { color: #e67e22; }
+        .value.band.high-risk { color: #e74c3c; }
+        .value.confidence { color: #9b59b6; }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        
+        .chart-container.large {
+            height: 400px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+        
+        .stat-item .stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .stat-item .stat-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .recommendations {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        
+        .recommendations h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        
+        .recommendation-text {
+            font-size: 1.1em;
+            line-height: 1.6;
+            color: #34495e;
+        }
+        
+        .comparison-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .comparison-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .method-label {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .method-result {
+            font-size: 1.2em;
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .method-result.traditional {
+            background: #3498db;
+        }
+        
+        .method-result.ml {
+            background: #9b59b6;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #3498db;
+            border: 2px solid #3498db;
+        }
+        
+        .btn-secondary:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .no-results {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            margin: 50px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Assessment Results & Analysis</h1>
+            <p>Your personalized social media addiction assessment with comprehensive insights</p>
+        </div>
+        
+        <div id="resultsContainer">
+            <!-- Results will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // Load user results from sessionStorage
+        const userResults = JSON.parse(sessionStorage.getItem('assessmentResults') || 'null');
+        
+        if (!userResults) {
+            document.getElementById('resultsContainer').innerHTML = `
+                <div class="no-results">
+                    <h2>No Assessment Results Found</h2>
+                    <p>Please complete the assessment first.</p>
+                    <a href="/" class="btn btn-primary">Take Assessment</a>
+                </div>
+            `;
+        } else {
+            displayResults(userResults);
+        }
+        
+        function displayResults(data) {
+            const resultsHTML = `
+                <div class="results-grid">
+                    <!-- User Results Card -->
+                    <div class="card user-results">
+                        <h2>🎯 Your Assessment Results</h2>
+                        <div class="result-summary">
+                            <div class="result-item">
+                                <span class="label">Risk Assessment</span>
+                                <span class="value band ${getBandClass(data.final_band)}">${data.final_band}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="label">Assessment Date</span>
+                                <span class="value timestamp">${new Date(data.timestamp).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="recommendations">
+                            <h3>💡 Personalized Recommendations</h3>
+                            <div class="recommendation-text">
+                                ${getRecommendations(data.final_band)}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Distribution Chart -->
+                    <div class="card">
+                        <h2>📊 Risk Distribution Analysis</h2>
+                        <div class="chart-container">
+                            <canvas id="riskDistributionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Response Pattern Analysis Chart -->
+                    <div class="card">
+                        <h2>📊 Response Pattern Analysis</h2>
+                        <div class="chart-container">
+                            <canvas id="responsePatternChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Risk Level Analysis -->
+                    <div class="card">
+                        <h2>🎯 Risk Level Analysis</h2>
+                        <div class="chart-container large">
+                            <canvas id="riskAnalysisChart"></canvas>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value" id="riskLevel">-</div>
+                                <div class="stat-label">Risk Level</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="percentile">-</div>
+                                <div class="stat-label">Population %</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="recommendation">-</div>
+                                <div class="stat-label">Action Needed</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Question Analysis -->
+                    <div class="card">
+                        <h2>🔍 Question Response Analysis</h2>
+                        <div class="chart-container large">
+                            <canvas id="questionAnalysisChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="/" class="btn btn-primary">Take Another Assessment</a>
+                    <a href="/api/results" class="btn btn-secondary" target="_blank">View All Data</a>
+                </div>
+            `;
+            
+            document.getElementById('resultsContainer').innerHTML = resultsHTML;
+            
+            // Load analysis data and create charts
+            loadAnalysisData(data);
+        }
+        
+        function getBandClass(band) {
+            if (band.includes('Low risk')) return 'low-risk';
+            if (band.includes('At-risk')) return 'at-risk';
+            if (band.includes('Problematic')) return 'problematic';
+            if (band.includes('High risk')) return 'high-risk';
+            return '';
+        }
+        
+        function getRecommendations(band) {
+            if (band.includes('Low risk')) {
+                return 'Great! You have healthy social media habits. Continue to maintain this balance and be mindful of your usage patterns. Consider setting occasional digital detox periods to maintain this healthy relationship.';
+            } else if (band.includes('At-risk')) {
+                return 'You may be developing some concerning social media habits. Consider setting time limits, taking regular breaks, and being more intentional about your social media use. Monitor your usage patterns closely.';
+            } else if (band.includes('Problematic')) {
+                return 'Your social media usage shows signs of problematic behavior. We recommend seeking professional guidance, implementing strict usage boundaries, and considering a structured digital wellness program.';
+            } else if (band.includes('High risk')) {
+                return 'Your responses indicate high-risk social media addiction patterns. We strongly recommend consulting with a mental health professional for proper assessment and support. Consider immediate intervention strategies.';
+            }
+            return 'Please consult with a healthcare professional for personalized recommendations.';
+        }
+        
+        function loadAnalysisData(userData) {
+            // Fetch analysis data from the server
+            fetch('/api/analysis')
+                .then(response => response.json())
+                .then(analysis => {
+                    if (analysis && !analysis.error) {
+                        createCharts(analysis, userData);
+                    } else {
+                        // Fallback to mock data if server data is not available
+                        createChartsWithMockData(userData);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading analysis data:', error);
+                    // Create charts with mock data if server data is not available
+                    createChartsWithMockData(userData);
+                });
+        }
+        
+        function createChartsWithMockData(userData) {
+            const mockAnalysis = {
+                risk_distribution: {
+                    'Low risk': 150,
+                    'At-risk (brief advice/monitor)': 200,
+                    'Problematic use likely (structured assessment)': 100,
+                    'High risk / addictive pattern (consider referral)': 50
+                },
+                score_stats: {
+                    mean: 25,
+                    median: 24,
+                    std: 8,
+                    min: 8,
+                    max: 44
+                }
+            };
+            
+            createCharts(mockAnalysis, userData);
+        }
+        
+        function createCharts(analysis, userData) {
+            createRiskDistributionChart(analysis.risk_distribution, userData.final_band);
+            createResponsePatternChart(userData.answers);
+            createRiskAnalysisChart(analysis, userData);
+            createQuestionAnalysisChart(userData.answers);
+        }
+        
+        function createRiskDistributionChart(riskDistribution, userBand) {
+            const ctx = document.getElementById('riskDistributionChart').getContext('2d');
+            const labels = Object.keys(riskDistribution);
+            const data = Object.values(riskDistribution);
+            const colors = labels.map(label => {
+                if (label === userBand) return '#ffc107';
+                if (label.includes('Low risk')) return '#27ae60';
+                if (label.includes('At-risk')) return '#f39c12';
+                if (label.includes('Problematic')) return '#e67e22';
+                if (label.includes('High risk')) return '#e74c3c';
+                return '#95a5a6';
+            });
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels.map(label => label.split(' ')[0] + '...'),
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createResponsePatternChart(answers) {
+            const ctx = document.getElementById('responsePatternChart').getContext('2d');
+            
+            // Count frequency of each response level
+            const responseCounts = [0, 0, 0, 0, 0]; // Never, Rarely, Sometimes, Often, Always
+            answers.forEach(answer => {
+                responseCounts[answer]++;
+            });
+            
+            const labels = ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'];
+            const colors = ['#27ae60', '#f39c12', '#e67e22', '#e74c3c', '#8e44ad'];
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: responseCounts,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label;
+                                    const value = context.parsed;
+                                    const total = responseCounts.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} questions (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createRiskAnalysisChart(analysis, userData) {
+            const ctx = document.getElementById('riskAnalysisChart').getContext('2d');
+            
+            // Calculate risk level distribution percentages
+            const totalAssessments = Object.values(analysis.risk_distribution).reduce((a, b) => a + b, 0);
+            const riskDistribution = analysis.risk_distribution;
+            
+            // Find user's risk level percentage
+            const userRiskLevel = userData.final_band;
+            const userRiskCount = riskDistribution[userRiskLevel] || 0;
+            const userRiskPercentage = Math.round((userRiskCount / totalAssessments) * 100);
+            
+            // Set the stats
+            document.getElementById('riskLevel').textContent = userRiskLevel.split(' ')[0];
+            document.getElementById('percentile').textContent = userRiskPercentage + '%';
+            
+            // Determine action needed
+            let actionNeeded = 'Monitor';
+            if (userRiskLevel.includes('High risk')) {
+                actionNeeded = 'Seek Help';
+            } else if (userRiskLevel.includes('Problematic')) {
+                actionNeeded = 'Take Action';
+            } else if (userRiskLevel.includes('At-risk')) {
+                actionNeeded = 'Be Aware';
+            } else {
+                actionNeeded = 'Maintain';
+            }
+            document.getElementById('recommendation').textContent = actionNeeded;
+            
+            // Create a horizontal bar chart showing risk levels
+            const riskLevels = Object.keys(riskDistribution);
+            const riskCounts = Object.values(riskDistribution);
+            const riskPercentages = riskCounts.map(count => Math.round((count / totalAssessments) * 100));
+            
+            const colors = riskLevels.map(level => {
+                if (level === userRiskLevel) return '#ffc107';
+                if (level.includes('Low risk')) return '#27ae60';
+                if (level.includes('At-risk')) return '#f39c12';
+                if (level.includes('Problematic')) return '#e67e22';
+                if (level.includes('High risk')) return '#e74c3c';
+                return '#95a5a6';
+            });
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: riskLevels.map(level => level.split(' ')[0] + '...'),
+                    datasets: [{
+                        label: 'Percentage of Population',
+                        data: riskPercentages,
+                        backgroundColor: colors,
+                        borderColor: colors.map(color => color === '#ffc107' ? '#ff9800' : color),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Percentage of Population (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const level = riskLevels[context.dataIndex];
+                                    const percentage = context.parsed.x;
+                                    const count = riskCounts[context.dataIndex];
+                                    return `${level}: ${percentage}% (${count} people)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createQuestionAnalysisChart(answers) {
+            const ctx = document.getElementById('questionAnalysisChart').getContext('2d');
+            const labels = answers.map((_, i) => `Q${i + 1}`);
+            
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Your Responses',
+                        data: answers,
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: '#3498db',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#3498db',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: '#3498db'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 4,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

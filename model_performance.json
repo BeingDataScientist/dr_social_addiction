@@ -1,0 +1,32 @@
+{
+  "best_model_name": "Logistic Regression",
+  "best_accuracy": 0.985,
+  "best_f1_score": 0.9849894103929892,
+  "all_results": {
+    "Random Forest": {
+      "accuracy": 0.866,
+      "f1_score": 0.8639059261002222,
+      "cv_mean": 0.83625
+    },
+    "Gradient Boosting": {
+      "accuracy": 0.85,
+      "f1_score": 0.8482031947989387,
+      "cv_mean": 0.8407500000000001
+    },
+    "Support Vector Machine": {
+      "accuracy": 0.957,
+      "f1_score": 0.956803320603729,
+      "cv_mean": 0.9572499999999999
+    },
+    "Logistic Regression": {
+      "accuracy": 0.985,
+      "f1_score": 0.9849894103929892,
+      "cv_mean": 0.98575
+    },
+    "K-Nearest Neighbors": {
+      "accuracy": 0.729,
+      "f1_score": 0.7215245698507626,
+      "cv_mean": 0.7215
+    }
+  }
+}

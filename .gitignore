@@ -1,0 +1,90 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Flask
+instance/
+.webassets-cache
+
+# MLflow
+mlruns/
+mlartifacts/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.tmp
+*.temp
+
+# Model files (keep only the best model)
+MODELS/best_model_*/
+!MODELS/best_model_logistic_regression/
+
+# Training analysis (keep reports, exclude large files)
+TRAIN_Analysis/*.png
+!TRAIN_Analysis/training_report.md
+
+# User data (keep structure, exclude actual user data)
+user_responses.csv
+!user_response_data.csv
+
+# AWS
+.aws/
+
+# Deployment
+.ebextensions/
+.elasticbeanstalk/
