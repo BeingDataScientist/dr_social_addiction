@@ -121,7 +121,8 @@ def calculate_score_and_band(answers):
 
 def save_to_csv(data):
     """Save the form data to CSV file matching the original schema"""
-    csv_file = 'user_responses.csv'
+    # Use a different filename to avoid conflicts
+    csv_file = 'new_user_responses.csv'
     
     # Check if it's a directory and remove it
     if os.path.isdir(csv_file):
@@ -131,21 +132,50 @@ def save_to_csv(data):
     
     file_exists = os.path.isfile(csv_file)
     
-    with open(csv_file, 'a', newline='', encoding='utf-8') as file:
-        fieldnames = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'Q9', 'Q10', 
-                     'Q11', 'Q12', 'Q13', 'Q14', 'Q15', 'Q16', 'Q17', 'Q18', 'Q19', 
-                     'Q20', 'Q21', 'Q22', 'ResultScore', 'ResultBand', 'Timestamp']
-        
-        writer = csv.DictWriter(file, fieldnames=fieldnames)
-        
-        # Write header if file is new
-        if not file_exists:
-            writer.writeheader()
-        
-        # Add timestamp to data
-        data['Timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        writer.writerow(data)
+    # Try to write with retry mechanism for file locking issues
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            with open(csv_file, 'a', newline='', encoding='utf-8') as file:
+                fieldnames = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'Q9', 'Q10', 
+                             'Q11', 'Q12', 'Q13', 'Q14', 'Q15', 'Q16', 'Q17', 'Q18', 'Q19', 
+                             'Q20', 'Q21', 'Q22', 'ResultScore', 'ResultBand', 'Timestamp']
+                
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                
+                # Write header if file is new
+                if not file_exists:
+                    writer.writeheader()
+                
+                # Add timestamp to data
+                data['Timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                
+                writer.writerow(data)
+                print(f"Data saved to {csv_file}")
+                break
+        except (OSError, IOError) as e:
+            if attempt < max_retries - 1:
+                print(f"Attempt {attempt + 1} failed: {e}. Retrying...")
+                import time
+                time.sleep(0.1)  # Wait 100ms before retry
+            else:
+                print(f"Failed to save after {max_retries} attempts: {e}")
+                # Create a backup filename if main file is locked
+                import time
+                backup_file = f'user_responses_backup_{int(time.time())}.csv'
+                try:
+                    with open(backup_file, 'w', newline='', encoding='utf-8') as backup:
+                        fieldnames = ['Q1', 'Q2', 'Q3', 'Q4', 'Q5', 'Q6', 'Q7', 'Q8', 'Q9', 'Q10', 
+                                     'Q11', 'Q12', 'Q13', 'Q14', 'Q15', 'Q16', 'Q17', 'Q18', 'Q19', 
+                                     'Q20', 'Q21', 'Q22', 'ResultScore', 'ResultBand', 'Timestamp']
+                        writer = csv.DictWriter(backup, fieldnames=fieldnames)
+                        writer.writeheader()
+                        data['Timestamp'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        writer.writerow(data)
+                        print(f"Data saved to backup file: {backup_file}")
+                except Exception as backup_error:
+                    print(f"Failed to save to backup file: {backup_error}")
+                    raise
 
 @app.route('/')
 def index():
