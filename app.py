@@ -338,22 +338,41 @@ def analyze_csv_data():
 def api_results():
     """API endpoint to get all results as JSON"""
     try:
-        csv_file = 'user_responses.csv'
+        # Try to read from the new file first, then fallback to old file
+        csv_file = 'new_user_responses.csv'
         
-        # Check if it's a directory and remove it
-        if os.path.isdir(csv_file):
-            import shutil
-            shutil.rmtree(csv_file)
-            print(f"Removed directory {csv_file}, will create as file")
+        # If new file doesn't exist, try the old file
+        if not os.path.isfile(csv_file):
+            csv_file = 'user_responses.csv'
+            
+            # Check if it's a directory and remove it
+            if os.path.isdir(csv_file):
+                import shutil
+                shutil.rmtree(csv_file)
+                print(f"Removed directory {csv_file}, will create as file")
         
         if not os.path.isfile(csv_file):
             return jsonify([])
         
         results = []
-        with open(csv_file, 'r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                results.append(row)
+        
+        # Try to read with retry mechanism for file locking issues
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                with open(csv_file, 'r', encoding='utf-8') as file:
+                    reader = csv.DictReader(file)
+                    for row in reader:
+                        results.append(row)
+                break
+            except (OSError, IOError) as e:
+                if attempt < max_retries - 1:
+                    print(f"Attempt {attempt + 1} failed to read {csv_file}: {e}. Retrying...")
+                    import time
+                    time.sleep(0.1)  # Wait 100ms before retry
+                else:
+                    print(f"Failed to read {csv_file} after {max_retries} attempts: {e}")
+                    return jsonify({'error': f'Unable to read data file: {str(e)}'})
         
         return jsonify(results)
         
