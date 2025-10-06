@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  social-addiction-app:
+    build: .
+    container_name: social-addiction-assessment
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logs:/app/logs
+      - ./user_responses.csv:/app/user_responses.csv
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - social-network
+
+networks:
+  social-network:
+    driver: bridge
+
+volumes:
+  logs:
+  user_data:
