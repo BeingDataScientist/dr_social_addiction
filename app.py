@@ -122,6 +122,13 @@ def calculate_score_and_band(answers):
 def save_to_csv(data):
     """Save the form data to CSV file matching the original schema"""
     csv_file = 'user_responses.csv'
+    
+    # Check if it's a directory and remove it
+    if os.path.isdir(csv_file):
+        import shutil
+        shutil.rmtree(csv_file)
+        print(f"Removed directory {csv_file}, will create as file")
+    
     file_exists = os.path.isfile(csv_file)
     
     with open(csv_file, 'a', newline='', encoding='utf-8') as file:
@@ -302,6 +309,13 @@ def api_results():
     """API endpoint to get all results as JSON"""
     try:
         csv_file = 'user_responses.csv'
+        
+        # Check if it's a directory and remove it
+        if os.path.isdir(csv_file):
+            import shutil
+            shutil.rmtree(csv_file)
+            print(f"Removed directory {csv_file}, will create as file")
+        
         if not os.path.isfile(csv_file):
             return jsonify([])
         
